@@ -1,113 +1,160 @@
+"use client";
 import Image from "next/image";
+import {
+  Divider,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+} from "@mui/material";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
+  const fetchQuiz = async (): Promise<any[]> => {
+    try {
+      const response = await fetch(
+        `https://quizapi.io/api/v1/questions?apiKey=${process.env.NEXT_PUBLIC_API_KEY}&limit=10`
+      );
+      if (!response.ok) {
+        const errMsg = await response.json();
+        throw new Error(errMsg);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("Error fetching quiz data:", error);
+      return []; // Return an empty array on error
+    }
+  };
+
+  const { data: dataQuiz, error } = useQuery({
+    queryKey: ["quiz"],
+    queryFn: fetchQuiz,
+  });
+
+  if (error) {
+    console.log("Error fetching quiz data:", error);
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <Box
+      sx={{
+        background:
+          "linear-gradient(244deg, #BEEAEB 0%, rgba(190, 234, 235, 0.00) 37.75%), #FFF",
+        width: { lg: "87%", xs: "90%" },
+        height: { lg: "72.5vh", xs: "100%" },
+        display: "flex",
+        flexDirection: "column",
+        padding: { lg: "100px", xs: "20px" },
+      }}
+    >
+      {dataQuiz?.map((item: any) => (
+        <Box key={item?.id}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "#304682",
+              fontSize: { lg: "24px", xs: "20px" },
+            }}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+            {`Question ${item?.id}: ${item.question}`}
+          </Typography>
+          <RadioGroup>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+                marginTop: "20px",
+                marginBottom:'20px'
+              }}
+            >
+              {Object.entries(item?.answers || {}).map(([key, value], index) => (
+                value !== null ? (
+                  <Box
+                    key={key} // Use `key` from the object as a unique key
+                    sx={{
+                      paddingLeft: "10px",
+                      paddingTop: "4px",
+                      paddingBottom: "4px",
+                      borderRadius: "25px",
+                      border: "1px solid #E1E1E1",
+                      backgroundColor: "white",
+                      width: "fit-content",
+                      height: "fit-content",
+                    }}
+                  >
+                    <FormControlLabel
+                      value={key}
+                      label={value as string}
+                      
+                      control={
+                        <Radio
+                          sx={{
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 20,
+                            },
+                            "&.Mui-checked": {
+                              color: "#028CA8",
+                            },
+                            "&.MuiRadio-root": {
+                              color: "#028CA8",
+                            },
+                            "&.Mui-disabled": {
+                              color: "#B0BEC5",
+                            },
+                          }}
+                        />
+                      }
+                    />
+                  </Box>
+                ) : null
+              ))}
+            </Box>
+          </RadioGroup>
+        </Box>
+      ))}
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      <Box
+        sx={{
+          flexDirection: "column",
+          display: "flex",
+          position: "fixed",
+          bottom: "0px",
+          left: "0px",
+          right: "0px",
+        }}
+      >
+        <Divider />
+        <Box
+          sx={{
+            display: "flex",
+            width: "90%",
+            justifyContent: "end",
+            padding: "16px",
+            backgroundColor:'white'
+          }}
         >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+          <Box
+            sx={{
+              borderRadius: "50px",
+              backgroundColor: "#304682",
+              fontSize: "20px",
+              fontStyle: "normal",
+              fontWeight: "bold",
+              color: "white",
+              width: "fit-content",
+              padding: "18px 50px",
+              justifyContent: "end",
+              cursor: "pointer",
+            }}
+          >
+            Next
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
